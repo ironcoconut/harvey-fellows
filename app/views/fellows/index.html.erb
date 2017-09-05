@@ -14,8 +14,9 @@
         </div>
         <div class="col-xs-9">
           <h3 class="top-margin-0"><%= fellow.display_name %></h3>
+          <h4><%= number_to_currency(fellow.total_goal - (@contributions[fellow.id] || 0.0)) %> to go!</h4>
           <p class="bio"><%= truncate(fellow.bio, length: 90) %></p>
-          <p><%= link_to "View More / Donate", fellow, class: "" %></p>
+          <p><%= link_to "View More / Contribute", fellow, class: "" %></p>
         </div>
       </div>
     </div>

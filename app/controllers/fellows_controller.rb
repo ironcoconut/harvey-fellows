@@ -5,6 +5,7 @@ class FellowsController < ApplicationController
 
   def index
     @fellows = Fellow.all
+    @contributions = Contribution.group(:fellow_id).sum(:amount)
   end
 
   def show
