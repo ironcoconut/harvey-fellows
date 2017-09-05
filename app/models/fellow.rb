@@ -20,4 +20,8 @@ class Fellow < ApplicationRecord
   def retirement
     @retirement ||= 10000.0
   end
+
+  def display_name
+    name || login
+  end
 end
