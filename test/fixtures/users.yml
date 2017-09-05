@@ -1,0 +1,6 @@
+artisan:
+  email: artisan@example.com
+  github_username: ironcoconut
+
+donor: {}
+  email: donor@example.com

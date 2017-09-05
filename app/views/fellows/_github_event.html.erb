@@ -1,0 +1,17 @@
+<% if "IssuesEvent" == event.type %>
+  <%= event.payload.action.capitalize %> issue "<%= truncate(event.payload.issue.title) %>" (<%= link_to "view", event.payload.issue.html_url %>)
+<% elsif "IssueCommentEvent" == event.type %>
+  Commented, "<%= truncate(event.payload.comment.body, length: 50) %>", on issue "<%= truncate(event.payload.issue.title) %>" (<%= link_to "view", event.payload.comment.html_url %>)
+<% elsif "PushEvent" == event.type %>
+  <% commits = event.payload.commits.select { |i| i.author.name == @fellow.name } %>
+  <% if commits.present? %>
+    Made <%= commits.length %> code change(s). Details:
+    <ul>
+      <% commits.each do |commit| %>
+        <li><%= truncate(commit.message) %>(<%= link_to "view", commit.url, target: "_blank" %>)</li>
+      <% end %>
+    </ul>
+    <% end %>
+<% else %>
+  <%= event.type %>
+<% end %>

@@ -1,0 +1,129 @@
+<div class="row">
+  <div class="col-xs-12 col-md-offset-2 col-md-8 text-center">
+    <h3 class="top-margin-0"><%= @fellow.name %></h3>
+
+    <h4><%= number_to_currency(@raised) %> of <%= number_to_currency(@fellow.total_goal) %> raised.</h4>
+
+    <div id="fellow-bio">
+      <%= link_to "Contribute", "#", class: "contribute-button btn btn-danger btn-lg" %>
+
+      <p>[ TODO: Let users specify the content below via a markdown file rather than some bs code I wrote to pull from Github ]</p>
+      <p class="bio"><%= truncate(@fellow.bio, length: 90) %></p>
+      <h4>Contributions to Houston</h4>
+      <ul>
+        <% @events.each do |event| %>
+          <li><%= event.text %> (<%= link_to "view", event.url, target: "_blank" %>)</li>
+        <% end %>
+      </ul>
+
+      <%= link_to "Contribute", "#", class: "contribute-button btn btn-danger btn-lg" %>
+    </div>
+
+    <div class="row">
+      <div class="col-xs-12 col-sm-offset-1 col-sm-10 col-md-offset-2 col-md-8 text-left">
+        <%= form_with(model: @contribution, local: true, id: "payment-form", style: {display: "none"}) do |f| %>
+          <%= f.hidden_field :fellow_id, value: @fellow.id %>
+
+          <div class="form-group">
+            <%= f.label :email, "Email (optional)" %>
+            <%= f.email_field :email, class: "form-control", id: "email-input" %>
+          </div>
+
+          <div class="form-group" id="password-div">
+            <%= f.label :password, "Password (optional)" %>
+            <%= f.password_field :password, class: "form-control" %>
+          </div>
+
+          <div class="form-group">
+            <%= f.label :amount %>
+            <div class="input-group">
+              <div class="input-group-addon">$</div>
+              <%= f.number_field :amount, class: "form-control", placeholder: "Amount", required: true, min: 1, step: 1 %>
+              <div class="input-group-addon">.00</div>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="card-element">
+              Credit or debit card
+            </label>
+            <div id="card-element">
+              <!-- a Stripe Element will be inserted here. -->
+            </div>
+            <!-- Used to display Element errors -->
+            <div id="card-errors" role="alert"></div>
+          </div>
+
+          <%= f.submit "Contribute", class: "btn btn-danger" %>
+        <% end %>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+$(function () {
+  var stripe = Stripe('<%= Stripe.public_key %>');
+  var elements = stripe.elements();
+
+  $("#payment-form").hide();
+  $("#password-div").hide();
+
+  $(".contribute-button").on("click", function(e) {
+    e.preventDefault();
+    $("#fellow-bio").hide();
+    $("#payment-form").show();
+  })
+
+  $("#email-input").on("input", function(e) {
+    var value = $(this).val();
+    console.log(value);
+
+    if(value) {
+      $("#password-div").show();
+    } else {
+      $("#password-div").hide();
+    }
+  });
+
+  var card = elements.create('card', {style: { base: { fontSize: "14px" } } });
+  card.mount('#card-element');
+  card.addEventListener('change', function(event) {
+    var displayError = document.getElementById('card-errors');
+    if (event.error) {
+      displayError.textContent = event.error.message;
+    } else {
+      displayError.textContent = '';
+    }
+  });
+
+  var form = document.getElementById('payment-form');
+  form.addEventListener('submit', function(event) {
+    event.preventDefault();
+
+    stripe.createToken(card).then(function(result) {
+      if (result.error) {
+        // Inform the user if there was an error
+        var errorElement = document.getElementById('card-errors');
+        errorElement.textContent = result.error.message;
+      } else {
+        // Send the token to your server
+        stripeTokenHandler(result.token);
+      }
+    });
+  });
+
+  function stripeTokenHandler(token) {
+    // Insert the token ID into the form so it gets submitted to the server
+    var form = document.getElementById('payment-form');
+    var hiddenInput = document.createElement('input');
+    hiddenInput.setAttribute('type', 'hidden');
+    hiddenInput.setAttribute('name', 'stripeToken');
+    hiddenInput.setAttribute('value', token.id);
+    form.appendChild(hiddenInput);
+
+    // Submit the form
+    form.submit();
+  }
+});
+</script>
